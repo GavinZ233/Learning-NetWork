@@ -1,0 +1,7 @@
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\bin\Debug\TCPServerExercises2.exe.config
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\bin\Debug\TCPServerExercises2.exe
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\bin\Debug\TCPServerExercises2.pdb
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\obj\Debug\TCPServerExercises2.csproj.AssemblyReference.cache
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\obj\Debug\TCPServerExercises2.csproj.CoreCompileInputs.cache
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\obj\Debug\TCPServerExercises2.exe
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\TCPServerExercises2\obj\Debug\TCPServerExercises2.pdb

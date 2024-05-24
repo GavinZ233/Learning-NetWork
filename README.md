@@ -205,3 +205,21 @@ ProtocolType 协议类型枚举类型，决定套接字使用的通信协议
         //  1-4:关闭连接，释放所有Socket关联资源
         socketTcp.Close();
 
+
+## 3. Socket通信流程
+
+
+|Client|通信|Server
+|--|--|--|
+|||创建Socket
+|||Bind将套接字与本地地址绑定
+|||Listen监听
+|创建Socket||Accept等待客户端连接
+|Connect链接服务端|网络连接（三次握手）|建立连接Accept返回新套接字
+|用Send和Receive收发数据|网络通信|用Send和Receive收发数据
+|Shotdown释放连接||Shotdown释放连接
+|Close关闭套接字|（四次挥手）|Close关闭套接字
+
+
+
+
