@@ -31,9 +31,13 @@ public class Lesson6 : MonoBehaviour
         int receiveNum = socket.Receive(receiveBytes);
         string printStr = string.Format("接收到服务端{0}的{1}字节", socket.RemoteEndPoint.ToString(),
             receiveNum);
-        string receive = Encoding.UTF8.GetString(receiveBytes, 0, receiveNum);
-
-        print(printStr+"接受内容："+receive);
+        //string receive = Encoding.UTF8.GetString(receiveBytes, 0, receiveNum);
+        PlayerMsg playerMsg = new PlayerMsg();
+        int msgID = BitConverter.ToInt32(receiveBytes, 0);
+        Debug.Log("msgID：" + msgID);
+        playerMsg.Reading(receiveBytes, 4);
+        Debug.Log(string.Format("name：{0}lev:{1}atk:{2}", playerMsg.playerData.name, playerMsg.playerData.lev, playerMsg.playerData.atk));
+        //print(printStr+"接受内容："+receive);
 
         socket.Send(Encoding.UTF8.GetBytes("这里是客户端"));
 

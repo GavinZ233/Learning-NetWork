@@ -37,7 +37,16 @@ namespace LearnTCPServer
 
             Console.WriteLine("客户端连入");
 
-            socketClient.Send(Encoding.UTF8.GetBytes("成功连入客户端"));
+            //socketClient.Send(Encoding.UTF8.GetBytes("成功连入客户端"));
+
+            PlayerMsg msg = new PlayerMsg();
+            msg.playerData = new PlayerData();
+            msg.playerData.name = "龙傲天";
+            msg.playerData.lev = 32;
+            msg.playerData.atk = 10;
+
+            socketClient.Send(msg.Writing());
+
 
             byte[] result = new byte[1024];
 
