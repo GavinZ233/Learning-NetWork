@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +22,15 @@ namespace TCPServerExercises2
                 }
                 else if (input.Substring(0,2)=="B:")
                 {
-                    socket.Broadcast(input.Substring(2));
+                    if (input.Substring(2)=="1001")
+                    {
+                        PlayerMsg msg = new PlayerMsg();
+                        msg.playerID = 666;
+                        msg.playerData = new PlayerData();
+                        msg.playerData.name = "服务端发送的";
+                        socket.Broadcast(msg);
+
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -42,11 +42,11 @@ namespace TCPServerExercises2
             serverSocket = null;    
         }
 
-        public void Broadcast(string str)
+        public void Broadcast(BaseMsg msg)
         {
             foreach (ClientSocket item in clientDic.Values)
             {
-                item.Send(str);
+                item.Send(msg);
             }
         }
 
@@ -58,7 +58,7 @@ namespace TCPServerExercises2
                 {
                     Socket clientSocket = serverSocket.Accept();
                     ClientSocket client = new ClientSocket(clientSocket);
-                    client.Send("接入到服务器^v^");
+
                     clientDic.Add(client.clientID, client);
                 }
                 catch (Exception e)

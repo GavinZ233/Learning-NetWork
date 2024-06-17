@@ -223,3 +223,78 @@ ProtocolType 协议类型枚举类型，决定套接字使用的通信协议
 
 
 
+
+
+## 4. 数据类结构
+
+### 1. BaseData
+
+作为基础数据类基类，满足基本的序列化与反序列化需求，可读取比特流数据
+
+|成员|作用|逻辑
+|--|--|--|
+|public abstract int GetBytesNum()|获取数据类的比特流长度|根据字段计算总长度
+|    public abstract byte[] Writing()|将自身数据输出成比特数组|根据字段序列化成比特流，并在每一步记录当前索引
+|    protected void WriteShort(byte[] bytes,short value,ref int index)|将value转成比特流|将value转成比特流接到bytes索引处，并修改传入的index使得比特数组的写入索引后移
+|其他值类型Write()方法同理||
+|    protected void WriteString(byte[] bytes, string value, ref int index)|读取比特数组中的string|将string通过Encoding.UTF8.GetBytes转成比特流，并在长度计算上额外考虑string 的比特结构（int长度+string本身长度）
+|  protected void WriteData(byte[] bytes,BaseData data,ref int index)|将继承自己的类转成比特流|调用Writing方法，后移索引
+|    public abstract int Reading(byte[] bytes,int beginIndex=0)|读取比特流|无
+|    protected int ReadInt(byte[] bytes,ref int index)|读取比特流转int|从索引处读取比特流转成int，并后移索引
+|Reading方法与Write同理||
+|    protected T ReadData<T>(byte[] bytes,ref int index) where T:BaseData,new()|读取BaseData类的比特流|创建T类，调用T的Reading方法，并后移索引
+
+>上述方法中多次提到后移索引，目的就是记录当前读取后的索引位置，作为下次读取的开头。
+
+### 2. BaseMsg
+
+作为客户端和服务端传输的消息类，继承自BaseData，特殊点在于，Msg的比特流会在前面添加一个int表示Msg的类型。               
+
+|成员|作用|逻辑
+|--|--|--|
+|    public override int GetBytesNum()|同BaseData|
+|    public override int Reading(byte[] bytes, int beginIndex = 0)|同BaseData|
+|    public override byte[] Writing()|同BaseData|
+|    public virtual int GetID()|获取该Msg的类型ID|每个Msg类都拥有独立的ID，在类里写死
+
+
+
+
+## 5. 封装Socket
+
+### 类结构
+
+#### 1. NetMgr
+
+|成员|作用|逻辑
+|--|--|--|
+|||
+|||
+|||
+|||
+
+
+
+#### 2. ServerSocket
+
+|成员|作用|逻辑
+|--|--|--|
+|||
+|||
+|||
+|||
+
+
+
+###  分包粘包
+
+
+
+###  心跳包
+
+
+
+
+
+
+

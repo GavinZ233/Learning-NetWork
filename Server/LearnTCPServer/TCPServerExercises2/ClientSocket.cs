@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -33,13 +33,13 @@ namespace TCPServerExercises2
             }
         }
 
-        public void Send(string info)
+        public void Send(BaseMsg msg)
         {
             if (socket!=null)
             {
                 try
                 {
-                    socket.Send(Encoding.UTF8.GetBytes(info));
+                    socket.Send(msg.Writing());
 
                 }
                 catch (Exception e)
@@ -60,10 +60,22 @@ namespace TCPServerExercises2
                     if (socket.Available>0)
                     {
                         byte[] result = new byte[1024];
-
                         int receiveNum = socket.Receive(result);
-                        ThreadPool.QueueUserWorkItem(HandleMsg,
-                            Encoding.UTF8.GetString(result, 0, receiveNum));
+
+                        int msgID = BitConverter.ToInt32(result, 0);
+                        BaseMsg msg = null;
+                        switch (msgID)
+                        {
+                            case 1001:
+                                msg = new PlayerMsg();
+                                msg.Reading(result, 4);
+                            break;
+                        }
+
+                        if (msg == null)
+                            return;
+
+                        ThreadPool.QueueUserWorkItem(HandleMsg,msg);
 
                     }
                 }
@@ -77,8 +89,15 @@ namespace TCPServerExercises2
 
         private void HandleMsg(object obj)
         {
-            string str = obj as string;
-            Console.WriteLine("收到消息:"+str);
+            BaseMsg msg = obj as BaseMsg;
+            if (msg is PlayerMsg)
+            {
+                PlayerMsg pm = msg as PlayerMsg;
+                Console.WriteLine("收到消息:" + pm.playerID);
+                Console.WriteLine("收到消息:" + pm.playerData.name);
+
+
+            }
         }
     }
 }

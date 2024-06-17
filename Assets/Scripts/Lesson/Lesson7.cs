@@ -5,17 +5,25 @@ using UnityEngine.UI;
 
 public class Lesson7 : MonoBehaviour
 {
-    public InputField input;
+    public Button btn;
 
     private void Start()
     {
-        input.onValueChanged.AddListener(SendMsg);
+        btn.onClick.AddListener(SendMsg);
         NetMgr.Instance.Connect("127.0.0.1",8080);
     }
 
-    private void SendMsg(string s)
+    private void SendMsg()
     {
-        NetMgr.Instance.Send(s);
+        PlayerMsg msg = new PlayerMsg();
+        msg.playerID = 4396;
+        msg.playerData = new PlayerData();
+        msg.playerData.atk = 31;
+        msg.playerData.lev = 31;
+        msg.playerData.name = "客户端发来的";
+
+
+        NetMgr.Instance.Send(msg);
     }
 
 

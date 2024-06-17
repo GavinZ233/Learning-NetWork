@@ -24,8 +24,8 @@ public class NetMgr : MonoBehaviour
 
     private Socket socket;
 
-    private Queue<string> sendMsgQueue = new Queue<string>();
-    private Queue<string> receiveQueue = new Queue<string>();
+    private Queue<BaseMsg> sendMsgQueue = new Queue<BaseMsg>();
+    private Queue<BaseMsg> receiveQueue = new Queue<BaseMsg>();
 
 
 
@@ -43,7 +43,14 @@ public class NetMgr : MonoBehaviour
     {
         if (receiveQueue.Count > 0)
         {
-            print("½ÓÊÕµ½ÏûÏ¢:" + receiveQueue.Dequeue());
+            BaseMsg msg = receiveQueue.Dequeue();
+            if (msg is PlayerMsg)
+            {
+                print((msg as PlayerMsg).playerID);
+                print((msg as PlayerMsg).playerData.name);
+
+            }
+
         }
 
     }
@@ -62,24 +69,24 @@ public class NetMgr : MonoBehaviour
             socket.Connect(ipPoint);
             isConnected = true;
 
-            //½ÓÊÕÏß³Ì
+            //æŽ¥æ”¶çº¿ç¨‹
             ThreadPool.QueueUserWorkItem(SendMsg);
-            //·¢ËÍÏß³Ì
+            //å‘é€çº¿ç¨‹
             ThreadPool.QueueUserWorkItem(ReceiveMsg);
         }
         catch (SocketException e)
         {
             if (e.ErrorCode == 10061)
-                print("·þÎñÆ÷¾Ü¾øÁ¬½Ó");
+                print("æœåŠ¡å™¨æ‹’ç»è¿žæŽ¥");
             else
-                print("Á¬½ÓÊ§°Ü£º" + e.ErrorCode);
+                print("è¿žæŽ¥å¤±è´¥ï¼š" + e.ErrorCode);
             return;
         }
 
     }
 
 
-    public void Send(string info)
+    public void Send(BaseMsg info)
     {
         sendMsgQueue.Enqueue(info);
     }
@@ -90,7 +97,7 @@ public class NetMgr : MonoBehaviour
         {
             if (sendMsgQueue.Count>0)
             {
-                socket.Send(Encoding.UTF8.GetBytes(sendMsgQueue.Dequeue()));
+                socket.Send(sendMsgQueue.Dequeue().Writing());
             }
         }
     }
@@ -102,7 +109,21 @@ public class NetMgr : MonoBehaviour
             if (socket.Available > 0)
             {
                  receiveNum = socket.Receive(receiveBytes);
-                receiveQueue.Enqueue(Encoding.UTF8.GetString(receiveBytes, 0, receiveNum));
+                int msgID = BitConverter.ToInt32(receiveBytes, 0);
+                BaseMsg msg = null;
+                switch (msgID)
+                {
+                    case 1001:
+                        msg = new PlayerMsg();
+                        msg.Reading(receiveBytes, 4);
+                        break;
+                   
+                }
+                if (msg == null)
+                    continue;
+
+
+                receiveQueue.Enqueue(msg);
 
             }
 
