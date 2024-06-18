@@ -10,7 +10,10 @@ public class PlayerMsg : BaseMsg
 
     public override int GetBytesNum()
     {
-        return 8 + playerData.GetBytesNum();
+        return 4+//消息长度
+            4+//ID
+            4 +//playerID
+            playerData.GetBytesNum();
     }
 
     public override int Reading(byte[] bytes, int beginIndex = 0)
@@ -24,8 +27,12 @@ public class PlayerMsg : BaseMsg
     public override byte[] Writing()
     {
         int index = 0;
-        byte[] bytes = new byte[GetBytesNum()];
+        int bytesNum = GetBytesNum();
+        byte[] bytes = new byte[bytesNum];
         WriteInt(bytes,GetID(),ref index);
+        //写入消息体的长度
+        WriteInt(bytes, bytesNum - 8, ref index);
+
         WriteInt(bytes, playerID, ref index);
         WriteData(bytes, playerData, ref index);
         return bytes;
