@@ -298,21 +298,112 @@ ProtocolType 协议类型枚举类型，决定套接字使用的通信协议
 两种情况可能同时发生            
 
 #### 2. 解决思路     
-消息头部添加`长度`，目前已有的头部信息是`ID`表示消息类型，现在额外添加长度，头部消息为8字节，`ID`+`长度`                     
-读取消息时，可以根据头部信息确定消息长度，对于分包和黏包借助缓存数组做记录与分割。
-
-|`消息结构`|消息ID|消息长度|消息体|
+##### 1. 标记长度
+消息头部添加`长度`，目前已有的头部信息是`ID`表示消息类型，现在额外添加长度，头部消息为8字节，`ID`+`长度`    
+读取消息时，可以根据头部信息确定消息长度，作为字节流分割的参考。
+|`消息字节流结构`|消息ID|消息长度|消息体|
 |--|--|--|--|
 |字节索引|0-3|4-7|8-Length-1|
 
+##### 2. 引入缓存区
+
+只有黏包的情况，对收到的字节流进行消息分割即可。                
+但出现分包时，收到的字节流是不完整的消息，无法正常处理。          
+将每次收到的字节流记入缓存区，不完整的消息也可以借此拼接成完整的消息。     
+处理到分包时，将前半部消息记入缓存区，并移动到缓存区前面，后面满足长度时依照黏包的逻辑执行。
+
+当然，后面还需要注意缓存区大小与空间利用。（可以利用头尾双标记，尝试将缓存区做成环状结构，避免缓存区频繁的数据迁移）
+
+
+
+##### 3. 分包黏包情况举例
+
+
+
+当出现`AB黏包且B包分包`时，缓存区如下
+
+|`缓存区内容`|消息A ID|消息A长度|消息体A|消息B ID|消息B长度|消息体B前半部分|
+|--|--|--|--|--|--|--|
+|字节索引|0-3|4-7|8-12|13-16|17-20|21-22
+
+此时的消息A可读取且完整，只需要做索引标记到`13`，即可开始读取消息B，但B只有前半部分，需要等待后续读取的字节流加入到缓存区，将B组合完成，再读出B消息。           
+
+当`B消息完整`时，缓存区如下
+
+
+|`缓存区内容`|消息B ID|消息B长度|消息体B前半部分|消息体B后半部分|
+|--|--|--|--|--|
+|字节索引 |0-3|4-7|8-9|10-15
+
+
 #### 3. 代码逻辑        
 
-思路：           
-
-代码：
 
 
+      private void HandleReceiveMsg(byte[] receiveBytes,int receiveNum)
+    {
+        int msgID = 0;
+        int msgLength = 0;
+        int nowIndex = 0;//当前访问索引
 
+        //收到消息时将消息记入缓存区
+        receiveBytes.CopyTo(cacheBytes, cacheNum);
+        cacheNum += receiveNum;
+
+        while (true)
+        {
+            //每次将长度设置为-1 是避免上一次解析的数据 影响这一次的判断
+            msgLength = -1;
+            //是否满足一条消息的完整长度
+            if (cacheNum - nowIndex >= 8)
+            {
+                //解析ID
+                msgID = BitConverter.ToInt32(cacheBytes, nowIndex);
+                nowIndex += 4;
+                //解析长度
+                msgLength = BitConverter.ToInt32(cacheBytes, nowIndex);
+                nowIndex += 4;
+            }
+            //缓存区的数据足够读取完整的消息体
+            if (cacheNum - nowIndex >= msgLength && msgLength != -1)
+            {
+                //解析消息体
+                BaseMsg baseMsg = null;
+                switch (msgID)
+                {
+                    case 1001:
+                        PlayerMsg msg = new PlayerMsg();
+                        msg.Reading(cacheBytes, nowIndex);
+                        baseMsg = msg;
+                        break;
+                }
+                if (baseMsg != null)
+                    receiveQueue.Enqueue(baseMsg);
+                nowIndex += msgLength;
+                if (nowIndex == cacheNum)
+                {
+                    cacheNum = 0;
+                    break;
+                }
+            }
+            else //不满足,证明有分包
+            {
+                //如果进行了 id和长度的解析 但是 没有成功解析消息体 那么需要减去nowIndex移动的位置
+                if (msgLength != -1)
+                    nowIndex -= 8;
+                //把剩余没有解析的字节数组内容 移到前面来 用于缓存下次继续解析
+                Array.Copy(cacheBytes, nowIndex, cacheBytes, 0, cacheNum - nowIndex);
+                cacheNum = cacheNum - nowIndex;
+                break;
+            }
+        }
+    }
+
+
+
+
+
+#### 4. 
 
 
 ###  心跳包

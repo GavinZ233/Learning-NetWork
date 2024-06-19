@@ -28,11 +28,7 @@ public class NetMgr : MonoBehaviour
     private Queue<BaseMsg> receiveQueue = new Queue<BaseMsg>();
 
 
-    /// <summary>
-    /// 接收字节
-    /// </summary>
-    private byte[] receiveBytes = new byte[1024*1024];
-    private int receiveNum;
+
 
     /// <summary>
     /// 缓存字节
@@ -98,6 +94,14 @@ public class NetMgr : MonoBehaviour
     {
         sendMsgQueue.Enqueue(info);
     }
+    /// <summary>
+    /// 测试，发送字节流
+    /// </summary>
+    /// <param name="info"></param>
+    public void TestSend(byte[] info)
+    {
+        socket.Send(info);
+    }
 
     private void SendMsg(object obj) 
     {
@@ -116,23 +120,9 @@ public class NetMgr : MonoBehaviour
         {
             if (socket.Available > 0)
             {
-                 receiveNum = socket.Receive(receiveBytes);
-                //int msgID = BitConverter.ToInt32(receiveBytes, 0);
-                //BaseMsg msg = null;
-                //switch (msgID)
-                //{
-                //    case 1001:
-                //        msg = new PlayerMsg();
-                //        msg.Reading(receiveBytes, 4);
-                //        break;
-                   
-                //}
-                //if (msg == null)
-                //    continue;
-
-
-                //receiveQueue.Enqueue(msg);
-
+                byte[] receiveBytes = new byte[1024*1024];
+                int receiveNum = socket.Receive(receiveBytes);
+                HandleReceiveMsg(receiveBytes,receiveNum);
             }
 
         }
@@ -146,9 +136,9 @@ public class NetMgr : MonoBehaviour
     {
         int msgID = 0;
         int msgLength = 0;
-        int nowIndex = 0;
+        int nowIndex = 0;//当前访问索引
 
-        //收到消息时 应该看看 之前有没有缓存的 如果有的话 我们直接拼接到后面
+        //收到消息时将消息记入缓存区
         receiveBytes.CopyTo(cacheBytes, cacheNum);
         cacheNum += receiveNum;
 
@@ -156,7 +146,7 @@ public class NetMgr : MonoBehaviour
         {
             //每次将长度设置为-1 是避免上一次解析的数据 影响这一次的判断
             msgLength = -1;
-            //处理解析一条消息
+            //是否满足一条消息的完整长度
             if (cacheNum - nowIndex >= 8)
             {
                 //解析ID
@@ -166,7 +156,7 @@ public class NetMgr : MonoBehaviour
                 msgLength = BitConverter.ToInt32(cacheBytes, nowIndex);
                 nowIndex += 4;
             }
-
+            //缓存区的数据足够读取完整的消息体
             if (cacheNum - nowIndex >= msgLength && msgLength != -1)
             {
                 //解析消息体
@@ -182,29 +172,22 @@ public class NetMgr : MonoBehaviour
                 if (baseMsg != null)
                     receiveQueue.Enqueue(baseMsg);
                 nowIndex += msgLength;
-                if (nowIndex == cacheNum)
+                if (nowIndex == cacheNum) //当缓存区读完时，索引回到头部，相当于清空缓存
                 {
                     cacheNum = 0;
                     break;
                 }
             }
-            else
+            else //不满足,证明有分包
             {
-                //如果不满足 证明有分包 
-                //那么我们需要把当前收到的内容 记录下来
-                //有待下次接受到消息后 再做处理
-                //receiveBytes.CopyTo(cacheBytes, 0);
-                //cacheNum = receiveNum;
-                //如果进行了 id和长度的解析 但是 没有成功解析消息体 那么我们需要减去nowIndex移动的位置
+                //如果进行了 id和长度的解析 但是 没有成功解析消息体 那么需要减去nowIndex移动的位置
                 if (msgLength != -1)
                     nowIndex -= 8;
-                //就是把剩余没有解析的字节数组内容 移到前面来 用于缓存下次继续解析
+                //把剩余没有解析的字节数组内容 移到前面来 用于缓存下次继续解析
                 Array.Copy(cacheBytes, nowIndex, cacheBytes, 0, cacheNum - nowIndex);
                 cacheNum = cacheNum - nowIndex;
                 break;
             }
-
-
         }
 
 
