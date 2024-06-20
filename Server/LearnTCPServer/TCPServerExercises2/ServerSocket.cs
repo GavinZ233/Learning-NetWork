@@ -13,10 +13,15 @@ namespace TCPServerExercises2
     {
         public Socket serverSocket;
         public Dictionary<int, ClientSocket> clientDic = new Dictionary<int, ClientSocket>();
+        /// <summary>
+        /// 客户端移除列表
+        /// </summary>
+        private List<ClientSocket> delList = new List<ClientSocket>();
 
         bool isClose;
-        public void Start(string ip,int port,int num)
+        public void Start(string ip, int port, int num)
         {
+            isClose = false;
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             serverSocket.Bind(ipPoint);
@@ -29,24 +34,26 @@ namespace TCPServerExercises2
         public void Close()
         {
             isClose = true;
-
             foreach (ClientSocket item in clientDic.Values)
             {
                 item.Close();
             }
-
             clientDic.Clear();
 
             serverSocket.Shutdown(SocketShutdown.Both);
             serverSocket.Close();
-            serverSocket = null;    
+            serverSocket = null;
         }
 
         public void Broadcast(BaseMsg msg)
         {
-            foreach (ClientSocket item in clientDic.Values)
+            lock (clientDic)
             {
-                item.Send(msg);
+
+                foreach (ClientSocket item in clientDic.Values)
+                {
+                    item.Send(msg);
+                }
             }
         }
 
@@ -54,17 +61,17 @@ namespace TCPServerExercises2
         {
             while (!isClose)
             {
-                try
-                {
-                    Socket clientSocket = serverSocket.Accept();
-                    ClientSocket client = new ClientSocket(clientSocket);
-
-                    clientDic.Add(client.clientID, client);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("客户端接入报错："+e.Message);
-                }
+                    try
+                    {
+                        Socket clientSocket = serverSocket.Accept();
+                        ClientSocket client = new ClientSocket(clientSocket);
+                        lock (clientDic)
+                             clientDic.Add(client.clientID, client);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("客户端接入报错：" + e.Message);
+                    }
             }
         }
 
@@ -72,12 +79,47 @@ namespace TCPServerExercises2
         {
             while (!isClose)
             {
-                if (clientDic.Count>0)
+                if (clientDic.Count > 0)
                 {
-                    foreach (ClientSocket item in clientDic.Values)
+                    lock (clientDic)
                     {
-                        item.Receive();
+                        foreach (ClientSocket item in clientDic.Values)
+                        {
+                            item.Receive();
+                        }
+                        //移除无用的客户端
+                        CloseDelListSocket();
                     }
+                }
+            }
+        }
+
+        public void CloseDelListSocket()
+        {
+            for (int i = 0; i < delList.Count; i++)
+            {
+                CloseClientSocket(delList[i]);
+            }
+            delList.Clear();
+        }
+
+        public void AddDelSocket(ClientSocket socket)
+        {
+            if (!delList.Contains(socket))
+            {
+                delList.Add(socket);
+            }
+        }
+
+        public void CloseClientSocket(ClientSocket socket)
+        {
+            lock (clientDic)
+            {
+
+                socket.Close();
+                if (clientDic.ContainsKey(socket.clientID))
+                {
+                    clientDic.Remove(socket.clientID);
                 }
             }
         }

@@ -8,9 +8,11 @@ namespace TCPServerExercises2
 {
     class Program
     {
+        public static ServerSocket socket;
+
         static void Main(string[] args)
         {
-            ServerSocket socket = new ServerSocket();
+            socket = new ServerSocket();
             socket.Start("127.0.0.1",8080,55);
 
             while (true)

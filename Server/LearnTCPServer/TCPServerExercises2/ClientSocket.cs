@@ -32,9 +32,13 @@ namespace TCPServerExercises2
 
         public void Close()
         {
+            if (!Connected)
+                return;
+
             if (socket!=null)
             {
                 socket.Shutdown(SocketShutdown.Both);
+                socket.Disconnect(false);
                 socket.Close();
                 socket = null;
             }
@@ -42,6 +46,9 @@ namespace TCPServerExercises2
 
         public void Send(BaseMsg msg)
         {
+            if (!Connected)
+                return;
+
             if (socket!=null)
             {
                 try
@@ -59,6 +66,9 @@ namespace TCPServerExercises2
 
         public void Receive()
         {
+            if (!Connected)
+                return;
+
             if (socket !=null)
             {
 
@@ -87,8 +97,10 @@ namespace TCPServerExercises2
                 PlayerMsg pm = msg as PlayerMsg;
                 Console.WriteLine("收到消息:" + pm.playerID);
                 Console.WriteLine("收到消息:" + pm.playerData.name);
-
-
+            }
+            else if (msg is QuitMsg)
+            {
+                Program.socket.AddDelSocket(this);
             }
         }
 
@@ -125,17 +137,19 @@ namespace TCPServerExercises2
                 if (cacheNum - nowIndex >= msgLength && msgLength != -1)
                 {
                     //解析消息体
-                    BaseMsg baseMsg = null;
+                    BaseMsg msg = null;
                     switch (msgID)
                     {
                         case 1001:
-                            PlayerMsg msg = new PlayerMsg();
+                            msg = new PlayerMsg();
                             msg.Reading(cacheBytes, nowIndex);
-                            baseMsg = msg;
+                            break;
+                        case 9999:
+                            msg = new QuitMsg();
                             break;
                     }
-                    if (baseMsg != null)
-                        ThreadPool.QueueUserWorkItem(HandleMsg, baseMsg);
+                    if (msg != null)
+                        ThreadPool.QueueUserWorkItem(HandleMsg, msg);
                     nowIndex += msgLength;
                     if (nowIndex == cacheNum) //当缓存区读完时，索引回到头部，相当于清空缓存
                     {

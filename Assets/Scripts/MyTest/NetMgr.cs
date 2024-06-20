@@ -197,11 +197,21 @@ public class NetMgr : MonoBehaviour
     {
         if (socket !=null)
         {
-            socket.Shutdown(SocketShutdown.Both);
-            socket.Close();
+            Debug.Log("客户端关闭连接");
+            QuitMsg msg = new QuitMsg();
+            socket.Send(msg.Writing());
 
+            socket.Shutdown(SocketShutdown.Both);
+            socket.Disconnect(false);
+            socket.Close();
+            socket = null;
             isConnected = false;
 
         }
+    }
+
+    private void OnDestroy()
+    {
+        Close();
     }
 }
