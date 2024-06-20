@@ -32,13 +32,10 @@ namespace TCPServerExercises2
 
         public void Close()
         {
-            if (!Connected)
-                return;
 
             if (socket!=null)
             {
                 socket.Shutdown(SocketShutdown.Both);
-                socket.Disconnect(false);
                 socket.Close();
                 socket = null;
             }
@@ -46,11 +43,9 @@ namespace TCPServerExercises2
 
         public void Send(BaseMsg msg)
         {
-            if (!Connected)
-                return;
-
-            if (socket!=null)
+            if (Connected)
             {
+
                 try
                 {
                     socket.Send(msg.Writing());
@@ -58,16 +53,23 @@ namespace TCPServerExercises2
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("发送出错："+e.Message);
+                    Console.WriteLine("发送出错：" + e.Message);
 
                 }
+
             }
+            else
+                Program.socket.AddDelSocket(this);
         }
 
         public void Receive()
         {
             if (!Connected)
+            {
+                Program.socket.AddDelSocket(this);
+
                 return;
+            }
 
             if (socket !=null)
             {
@@ -84,6 +86,8 @@ namespace TCPServerExercises2
                 catch (Exception e)
                 {
                     Console.WriteLine("接收出错："+e.Message);
+                    Program.socket.AddDelSocket(this);
+
                 }
 
             }

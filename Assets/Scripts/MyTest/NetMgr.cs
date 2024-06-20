@@ -120,6 +120,8 @@ public class NetMgr : MonoBehaviour
         {
             if (socket.Available > 0)
             {
+                Debug.Log("ReceiveMsg" );
+
                 byte[] receiveBytes = new byte[1024*1024];
                 int receiveNum = socket.Receive(receiveBytes);
                 HandleReceiveMsg(receiveBytes,receiveNum);
@@ -149,6 +151,7 @@ public class NetMgr : MonoBehaviour
             //是否满足一条消息的完整长度
             if (cacheNum - nowIndex >= 8)
             {
+
                 //解析ID
                 msgID = BitConverter.ToInt32(cacheBytes, nowIndex);
                 nowIndex += 4;
@@ -180,6 +183,7 @@ public class NetMgr : MonoBehaviour
             }
             else //不满足,证明有分包
             {
+
                 //如果进行了 id和长度的解析 但是 没有成功解析消息体 那么需要减去nowIndex移动的位置
                 if (msgLength != -1)
                     nowIndex -= 8;
