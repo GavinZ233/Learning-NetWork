@@ -20,6 +20,8 @@ namespace TCPServerExercises2
             this.clientID=CLIENT_BEGIN_ID;
             this.socket = s;
             ++CLIENT_BEGIN_ID;
+
+            ThreadPool.QueueUserWorkItem(CheckTimeOut);
         }
 
 
@@ -29,7 +31,11 @@ namespace TCPServerExercises2
         private byte[] cacheBytes = new byte[1024 * 1024];
         private int cacheNum;
 
-
+        /// <summary>
+        /// 上一次收到消息的时间
+        /// </summary>
+        private long frontTime=-1;
+        private static int TIME_OUT_TIME = 7;
         public void Close()
         {
 
@@ -92,19 +98,45 @@ namespace TCPServerExercises2
 
             }
         }
+        /// <summary>
+        /// 超时检测
+        /// </summary>
+        private void CheckTimeOut(object obj)
+        {
+            while (Connected)
+            {
+                if (frontTime != -1 && DateTime.Now.Ticks / TimeSpan.TicksPerSecond - frontTime >= TIME_OUT_TIME)
+                {
+                    Program.socket.AddDelSocket(this);
+                    break;
+                }
+                Thread.Sleep(1000);
+            }
+        }
 
         private void HandleMsg(object obj)
         {
             BaseMsg msg = obj as BaseMsg;
-            if (msg is PlayerMsg)
+            Console.WriteLine(msg.GetType().Name);
+            switch (msg.GetType().Name)
             {
-                PlayerMsg pm = msg as PlayerMsg;
-                Console.WriteLine("收到消息:" + pm.playerID);
-                Console.WriteLine("收到消息:" + pm.playerData.name);
-            }
-            else if (msg is QuitMsg)
-            {
-                Program.socket.AddDelSocket(this);
+                case "PlayerMsg":
+                    PlayerMsg pm = msg as PlayerMsg;
+                    Console.WriteLine("收到消息:" + pm.playerID);
+                    Console.WriteLine("收到消息:" + pm.playerData.name);
+
+                    break;
+                case "QuitMsg":
+                    Program.socket.AddDelSocket(this);
+
+                    break;
+                case "HeartMsg":
+                    //收到心跳消息，记录时间
+                    //DateTime.Now.Ticks系统Ticks时间除以一千万得到系统的秒
+                    frontTime = DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -150,6 +182,10 @@ namespace TCPServerExercises2
                             break;
                         case 9999:
                             msg = new QuitMsg();
+                            break;
+                        case 8888:
+                            msg = new HeartMsg();
+                            Console.WriteLine("心跳");
                             break;
                     }
                     if (msg != null)

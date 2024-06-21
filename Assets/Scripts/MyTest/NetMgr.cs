@@ -38,9 +38,20 @@ public class NetMgr : MonoBehaviour
 
     private bool isConnected;
 
+    private int SEND_HEART_MSG_TIME = 2;
+    private HeartMsg heartMsg = new HeartMsg();
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
+        InvokeRepeating("SendHeartMsg", 0, SEND_HEART_MSG_TIME);
+    }
+
+    private void SendHeartMsg()
+    {
+        if (isConnected)
+        {
+            Send(heartMsg);
+        }
     }
 
     void Update()

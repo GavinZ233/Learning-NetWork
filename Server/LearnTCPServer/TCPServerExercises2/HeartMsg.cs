@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-public class QuitMsg : BaseMsg
+public class HeartMsg : BaseMsg
 {
-
     public override int GetBytesNum()
     {
         return 8;
@@ -12,7 +8,6 @@ public class QuitMsg : BaseMsg
 
     public override int Reading(byte[] bytes, int beginIndex = 0)
     {
-        
         return beginIndex;
     }
 
@@ -29,7 +24,6 @@ public class QuitMsg : BaseMsg
 
     public override int GetID()
     {
-        return 9999;
+        return 8888;
     }
-
 }
