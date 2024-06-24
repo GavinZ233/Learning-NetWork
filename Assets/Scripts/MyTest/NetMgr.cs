@@ -227,6 +227,6 @@ public class NetMgr : MonoBehaviour
 
     private void OnDestroy()
     {
-        Close();
+       // Close();
     }
 }

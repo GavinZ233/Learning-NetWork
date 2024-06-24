@@ -21,7 +21,6 @@ namespace TCPServerExercises2
             this.socket = s;
             ++CLIENT_BEGIN_ID;
 
-            ThreadPool.QueueUserWorkItem(CheckTimeOut);
         }
 
 
@@ -96,22 +95,25 @@ namespace TCPServerExercises2
 
                 }
 
+                //检测是否超时
+                CheckTimeOut();
             }
         }
         /// <summary>
         /// 超时检测
         /// </summary>
-        private void CheckTimeOut(object obj)
+        private void CheckTimeOut()
         {
-            while (Connected)
-            {
+           // while (Connected)
+           // {
                 if (frontTime != -1 && DateTime.Now.Ticks / TimeSpan.TicksPerSecond - frontTime >= TIME_OUT_TIME)
                 {
                     Program.socket.AddDelSocket(this);
-                    break;
+                Console.WriteLine("当前客户端超时");
+                   // break;
                 }
-                Thread.Sleep(1000);
-            }
+                //Thread.(1000);
+           // }
         }
 
         private void HandleMsg(object obj)
