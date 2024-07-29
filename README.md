@@ -441,12 +441,129 @@ ProtocolType 协议类型枚举类型，决定套接字使用的通信协议
 
 
 
-## 异步通信
+## TCP异步通信
 
-### 1. 常用方法
-
-
+### 1. Begin方法
 
 
+客户端连接服务端:
 
+        Socket clientTcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        IPEndPoint ipPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"),8080);
+        clientTcp.BeginConnect(ipPoint, (result) =>
+        {
+                clientTcp.EndConnect(result);
+        },clientTcp);
+
+
+
+服务端接收客户端：              
+
+            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint ipPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            serverSocket.Bind(ipPoint);
+            serverSocket.Listen(num);
+            serverSocket.BeginAccept(AcceptCallBack, null);
+
+
+服务端接收客户端回调:           
+
+        private void AcceptCallBack(IAsyncResult asyncResult)
+        {
+                Socket clientSocket = serverSocket.EndAccept(asyncResult);
+                ClientSocket client = new ClientSocket(clientSocket);
+                serverSocket.BeginAccept(AcceptCallBack, null);
+        }
+
+接收方法：
+
+        private void ReceiveCallBack(IAsyncResult result)
+        {
+                    int num = this.socket.EndReceive(result);
+                    //处理分包黏包
+                    HandleReceiveMsg(num);
+                    this.socket.BeginReceive(cacheBytes, cacheNum, cacheBytes.Length - cacheNum, SocketFlags.None, ReceiveCallBack, this.socket);//继续接收
+        }
+
+发送方法：
+
+        public void Send(BaseMsg msg)
+        {
+                byte[] bytes = msg.Writing();
+                socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, SendCallBack, null);
+        }
+        private void SendCallBack(IAsyncResult result)
+        {
+                    this.socket.EndSend(result);
+        }
+
+
+
+
+### 2. Async方法
+
+依赖`SocketAsyncEventArgs`类以及委托
+
+
+客户端接入：                    
+
+        SocketAsyncEventArgs e2 = new SocketAsyncEventArgs();
+        e2.Completed += ConnectCallBack;
+        socketTcp.ConnectAsync(e2);
+        
+    
+
+服务端接收：
+
+        SocketAsyncEventArgs e = new SocketAsyncEventArgs();
+        e.Completed += (socket, args) =>
+        {
+                //获取连入的客户端socket
+                Socket clientSocket = args.AcceptSocket;
+                (socket as Socket).AcceptAsync(args);
+
+        };
+        socketTcp.AcceptAsync(e);
+
+
+发送消息:
+
+
+        SocketAsyncEventArgs e3 = new SocketAsyncEventArgs();
+        byte[] bytes2 = Encoding.UTF8.GetBytes("123");
+        e3.SetBuffer(bytes2, 0, bytes2.Length);//设置接受数据的容器，偏移位置，容量
+        e3.Completed += (socket, args) =>
+        {
+            if (args.SocketError == SocketError.Success)
+            {
+                print("发送成功");
+            }
+        };
+        socketTcp.SendAsync(e3);
+
+
+接收消息：
+
+
+        SocketAsyncEventArgs e4 = new SocketAsyncEventArgs();
+        e4.SetBuffer(new byte[1024 * 1024], 0, 1024 * 1024);
+        e4.Completed += (socket, args) =>
+        {
+            if(args.SocketError == SocketError.Success)
+            {
+                //收取存储在容器当中的字节
+                //Buffer是容器
+                //BytesTransferred是收取了多少个字节
+                Encoding.UTF8.GetString(args.Buffer, 0, args.BytesTransferred);
+                args.SetBuffer(0, args.Buffer.Length);
+                //接收完消息 再接收下一条
+                (socket as Socket).ReceiveAsync(args);
+            }
+        };
+        socketTcp.ReceiveAsync(e4);
+
+
+
+
+        
 
