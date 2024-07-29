@@ -1,0 +1,6 @@
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\bin\Debug\NetWorkData.dll
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\bin\Debug\NetWorkData.pdb
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\obj\Debug\NetWorkData.csproj.CoreCompileInputs.cache
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\obj\Debug\NetWorkData.dll
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\obj\Debug\NetWorkData.pdb
+E:\GitRepositories\Learning-NetWork\Server\LearnTCPServer\NetWorkData\obj\Debug\NetWorkData.csproj.AssemblyReference.cache

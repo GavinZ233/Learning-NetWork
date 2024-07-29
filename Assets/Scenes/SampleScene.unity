@@ -892,6 +892,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a844a6aa9bf4bf941b319affda7f97b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  btn: {fileID: 481583668}
+  nianBtn: {fileID: 26730276}
+  fenBtn: {fileID: 1421452552}
+  nfBtn: {fileID: 2048805859}
 --- !u!114 &762216278
 MonoBehaviour:
   m_ObjectHideFlags: 0
