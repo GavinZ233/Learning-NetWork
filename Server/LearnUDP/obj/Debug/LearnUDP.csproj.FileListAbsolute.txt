@@ -1,0 +1,7 @@
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\bin\Debug\LearnUDP.exe.config
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\bin\Debug\LearnUDP.exe
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\bin\Debug\LearnUDP.pdb
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\obj\Debug\LearnUDP.csproj.AssemblyReference.cache
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\obj\Debug\LearnUDP.csproj.CoreCompileInputs.cache
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\obj\Debug\LearnUDP.exe
+E:\GitRepositories\Learning-NetWork\Server\LearnUDP\obj\Debug\LearnUDP.pdb
